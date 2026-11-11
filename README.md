@@ -23,7 +23,7 @@ BalanceVault (formerly LedgerLine) is a digital banking application focused on f
 
 ## Live Application
 
-- **Frontend:** https://ledger-line-liart.vercel.app
+- **Frontend:** https://balancevault-app.vercel.app/
 - **GitHub Repository:** https://github.com/srinivasapallapu9/LedgerLine
 - **Backend:** Hosted on Render
 - **Database:** Hosted on Neon PostgreSQL
