@@ -1,6 +1,6 @@
 import { User, Account, FinancialTransaction, SystemMetrics, AuditEvent, AccountStatus, UserRole } from '../types';
 
-const API_BASE = '/api';
+const API_BASE = import.meta.env.VITE_API_URL || '/api';
 
 export function formatPaiseToINR(paiseStr: string | number): string {
   const paise = typeof paiseStr === 'string' ? BigInt(paiseStr || '0') : BigInt(paiseStr);
