@@ -1,115 +1,279 @@
-# BalanceVault (formerly LedgerLine) V1 — Core Financial Engine
+# BalanceVault — Secure Digital Banking & Ledger System
 
-BalanceVault is a banking-grade financial platform engineered for transactional integrity, double-entry accounting, strict immutability, concurrency safety, and auditability.
+BalanceVault (formerly LedgerLine) is a digital banking application focused on financial transaction integrity, double-entry accounting, role-based access control, idempotency, and auditability.
 
-Currency: **INR**  
-Smallest Unit: **Paise** (Represented as `BIGINT`, never floating-point)  
-Primary Identifiers: **UUID** (`gen_random_uuid()`)  
-Database: **PostgreSQL 15+**  
-ORM: **Prisma ORM (v6.x)**
+## Project Overview
 
----
+| Component | Technology |
+|---|---|
+| Frontend | React, TypeScript, Vite |
+| Backend | Node.js, Express, TypeScript |
+| ORM | Prisma ORM 6.x |
+| Database | PostgreSQL 15+ |
+| Authentication | JWT-based authentication |
+| Password Hashing | bcrypt |
+| Frontend Deployment | Vercel |
+| Backend Deployment | Render |
+| Database Hosting | Neon PostgreSQL |
 
-## 1. Quickstart
+**Currency:** INR  
+**Smallest Currency Unit:** Paise  
+**Financial Amount Representation:** BIGINT  
+**Primary Identifiers:** UUID  
+
+## Live Application
+
+- **Frontend:** https://ledger-line-liart.vercel.app
+- **GitHub Repository:** https://github.com/srinivasapallapu9/LedgerLine
+- **Backend:** Hosted on Render
+- **Database:** Hosted on Neon PostgreSQL
+
+## Features
+
+### Customer
+- User registration and authentication
+- Customer account management
+- Deposits and withdrawals
+- Customer-to-customer transfers
+- Transaction history
+
+### Administrator
+- Administrator authentication
+- Account management
+- Account status management
+- Administrative access to application operations
+
+### Auditor
+- Separate auditor role
+- Read-only financial review capabilities
+- Transaction and audit information access according to implemented permissions
+
+### Financial Integrity
+- Double-entry ledger accounting
+- Paise-based financial amounts
+- PostgreSQL transaction processing
+- Transaction idempotency
+- Concurrency-aware financial operations
+- Audit event recording
+- Database constraints and triggers for financial integrity
+
+## Architecture
+
+```text
+                 ┌──────────────────────┐
+                 │      Customer        │
+                 │   Administrator      │
+                 │       Auditor        │
+                 └──────────┬───────────┘
+                            │
+                            ▼
+                 ┌──────────────────────┐
+                 │   React Frontend    │
+                 │       Vercel        │
+                 └──────────┬───────────┘
+                            │ HTTPS
+                            ▼
+                 ┌──────────────────────┐
+                 │   Express REST API  │
+                 │       Render        │
+                 └──────────┬───────────┘
+                            │ Prisma
+                            ▼
+                 ┌──────────────────────┐
+                 │ PostgreSQL Database │
+                 │        Neon         │
+                 └──────────────────────┘
+```
+
+## Local Development Setup
 
 ### Prerequisites
-- Node.js 18+ (tested on Node v22.x)
-- PostgreSQL 15+ (tested on PostgreSQL 18.6)
-- npm or pnpm
 
-### Setup Instructions
+- Node.js 18+
+- npm
+- PostgreSQL 15+
+- Git
 
-1. **Clone and Install Dependencies**:
-   ```bash
-   npm install
-   ```
-
-2. **Configure Environment Variables**:
-   Copy `.env.example` to `.env`:
-   ```bash
-   cp .env.example .env
-   ```
-   Configure your PostgreSQL connection strings:
-   ```env
-   DATABASE_URL="postgresql://postgres:root@localhost:5432/ledgerline?schema=public"
-   TEST_DATABASE_URL="postgresql://postgres:root@localhost:5432/ledgerline_test?schema=public"
-   ```
-
-3. **Deploy Database Migrations**:
-   Deploy the financial schema, enums, triggers, and constraints using Prisma:
-   ```bash
-   npm run db:migrate
-   ```
-
-4. **Seed Internal System Accounts**:
-   Populate internal clearing accounts (this does not create or reset an administrator):
-   ```bash
-   npm run db:seed
-   ```
-
-5. **Provision a Local Administrator**:
-   Set `ADMIN_EMAIL` and `ADMIN_PASSWORD` in your local, git-ignored `.env` file. Use a unique password of at least 12 characters; do not commit it or put it in source control. Then run:
-   ```bash
-   npm run admin:provision
-   ```
-   A new administrator is created only if the email is unused. If that email already belongs to an administrator, the script leaves its credentials unchanged. To reset that administrator's password, run `npm run admin:provision -- --reset-existing` in an interactive terminal and type the exact administrator email when prompted. An existing non-admin user is never promoted by this script.
-
-   Sign in through the frontend using the configured `ADMIN_EMAIL` and `ADMIN_PASSWORD`. There is no hard-coded demo login.
-
-6. **Run Automated Integration Tests**:
-   The provisioning and registration authorization tests do not connect to a database:
-   ```bash
-   npm run test:admin
-   ```
-   The full integration suites use a database and reset test data. Verify that `TEST_DATABASE_URL` points to a disposable test database before running:
-   ```bash
-   npm test
-   ```
-
----
-
-## 2. Project Structure
-
-```
-├── prisma/
-│   ├── schema.prisma              # Complete Prisma Schema with Enums and Models
-│   ├── seed.ts                    # Bootstrap script for system accounts & admin
-│   └── migrations/
-│       └── 20261110000000_init_core_financial_schema/
-│           └── migration.sql      # Core PostgreSQL DDL, triggers, and constraints
-├── tests/
-│   ├── test-helper.ts             # Test database isolation and connection pooling
-│   ├── run-all-tests.ts           # Comprehensive 36-test integration suite
-│   └── prisma-client.test.ts      # Prisma Client ORM relational test
-├── scripts/
-│   └── init-roles.sql             # Least-privilege role setup (owner, app, auditor)
-├── docs/
-│   ├── DATABASE_ARCHITECTURE.md   # Data dictionary, tables, enums, indexes
-│   ├── FINANCIAL_INTEGRITY.md     # Double-entry triggers, immutability, idempotency
-│   ├── DATABASE_SECURITY.md       # Security plan, roles, grants, ledger protection
-│   └── MIGRATION_VERIFICATION_REPORT.md # Verification report & test audit logs
-├── backend/                       # Existing Spring Boot backend scaffold
-└── package.json                   # NPM configuration & scripts
-```
-
----
-
-## 3. Database Security Setup
-
-To provision least-privilege PostgreSQL roles (separating migration owner, application runtime, and read-only auditor):
+### 1. Clone the repository
 
 ```bash
-psql -U postgres -h localhost -p 5432 -d ledgerline -f scripts/init-roles.sql
+git clone https://github.com/srinivasapallapu9/LedgerLine.git
+cd LedgerLine
 ```
 
-The application connects using `ledgerline_app`, which is granted restricted DML and explicitly denied `UPDATE` and `DELETE` on `ledger_entries` and `audit_events`.
+### 2. Install backend dependencies
 
----
+```bash
+npm install
+```
 
-## 4. Documentation
+### 3. Install frontend dependencies
 
-For deep technical specifications, refer to the documentation in `docs/`:
+```bash
+cd frontend
+npm install
+cd ..
+```
+
+### 4. Configure environment variables
+
+Copy `.env.example` to `.env` and configure the required environment variables.
+
+Example local PostgreSQL configuration:
+
+```env
+LOCAL_DATABASE_URL="postgresql://postgres:root@localhost:5432/ledgerline?schema=public"
+TEST_DATABASE_URL="postgresql://postgres:root@localhost:5432/ledgerline_test?schema=public"
+```
+
+Configure `DATABASE_URL`, `DIRECT_URL`, and the required authentication configuration according to the project's environment setup.
+
+Never commit actual database credentials, JWT secrets, or passwords.
+
+### 5. Generate Prisma Client
+
+```bash
+npx prisma generate
+```
+
+### 6. Apply database migrations
+
+```bash
+npm run db:migrate
+```
+
+### 7. Initialize system accounts
+
+```bash
+npm run db:seed
+```
+
+### 8. Provision a local administrator
+
+Set `ADMIN_EMAIL` and `ADMIN_PASSWORD` in your local `.env`.
+
+The password must contain at least 12 characters.
+
+```bash
+npm run admin:provision
+```
+
+The provisioning script does not promote an existing customer to administrator.
+
+### 9. Start the backend
+
+```bash
+npm start
+```
+
+### 10. Start the frontend
+
+In a separate terminal:
+
+```bash
+cd frontend
+npm run dev
+```
+
+Configure the frontend API URL to point to your local backend.
+
+## Available Scripts
+
+| Command | Description |
+|---|---|
+| `npm start` | Start backend |
+| `npm run dev` | Start backend in development mode |
+| `npm run db:migrate` | Apply database migrations |
+| `npm run db:seed` | Initialize system accounts |
+| `npm run admin:provision` | Provision administrator |
+| `npm run test:admin` | Run administrator provisioning tests |
+| `npm run test:transfer-unit` | Run transfer unit tests |
+| `npm run test:engine` | Run engine tests |
+| `npm run test:api` | Run API integration tests |
+| `npm test` | Run configured test suite |
+
+**Warning:** Integration tests may reset test database data. Always verify that `TEST_DATABASE_URL` points to a disposable test database before executing tests.
+
+## Database Structure
+
+The core database contains:
+
+- `users`
+- `accounts`
+- `financial_transactions`
+- `ledger_entries`
+- `idempotency_records`
+- `audit_events`
+
+### Financial Accounting
+
+Financial amounts are stored in paise using PostgreSQL BIGINT.
+
+Example:
+
+```text
+₹100.00 = 10000 paise
+```
+
+This avoids floating-point precision errors in financial calculations.
+
+### Transaction Integrity
+
+The application uses transaction processing, ledger entries, database constraints, and idempotency mechanisms to support reliable financial operations.
+
+Ledger and audit records are intended to preserve transaction history and traceability.
+
+## Security
+
+- Password hashing with bcrypt
+- Authentication using JWT
+- Role-based access control
+- Customer, administrator, and auditor roles
+- Database constraints
+- Transaction idempotency
+- Audit event recording
+- Environment-based configuration
+- Separation of development and production environments
+
+## Deployment
+
+BalanceVault is deployed using:
+
+- **Vercel:** React frontend
+- **Render:** Express backend
+- **Neon:** PostgreSQL database
+
+Production environment variables are configured through the respective hosting platforms.
+
+Never include production credentials in the repository.
+
+## Project Documentation
+
+Additional technical documentation:
+
 - [Database Architecture](docs/DATABASE_ARCHITECTURE.md)
-- [Financial Integrity & Accounting Rules](docs/FINANCIAL_INTEGRITY.md)
-- [Database Security Plan](docs/DATABASE_SECURITY.md)
+- [Financial Integrity](docs/FINANCIAL_INTEGRITY.md)
+- [Database Security](docs/DATABASE_SECURITY.md)
 - [Migration Verification Report](docs/MIGRATION_VERIFICATION_REPORT.md)
+- [AI Usage & Development Prompts](PROMPTS.md)
+- [Threat Model](THREATS.md)
+
+## Responsible AI Usage
+
+AI tools were used during development for implementation assistance, debugging, architecture discussions, documentation, and deployment troubleshooting.
+
+AI-generated suggestions were reviewed and tested. Incorrect approaches were investigated and corrected during development.
+
+See `PROMPTS.md` for the development interaction record.
+
+## Limitations
+
+BalanceVault is a project demonstration and evaluation application. It is not a regulated banking system and is not intended to process real customer funds.
+
+Further security testing, monitoring, operational hardening, and independent review would be required before any real financial deployment.
+
+## Author
+
+**Srinivas Pallapu**
+
+GitHub: https://github.com/srinivasapallapu9
